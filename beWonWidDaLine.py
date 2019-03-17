@@ -4,6 +4,8 @@ from ev3dev.ev3 import Sound
 
 robot = robotFunctions.RobotHandler('outA', 'outD', 'outB')
 
+robot.ar.position = 0
+
 while True:
     robot.follow_line_at_angle(Color.BLUE, angle=0)
     c = robot.look_for_circle_color()
@@ -11,6 +13,7 @@ while True:
         print('sorry, oops no expected color')
         break
     if c == Color.BLACK:
+        robot.drive(15)
         print('tada')
         Sound.beep()
         break

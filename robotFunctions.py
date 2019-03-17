@@ -154,7 +154,7 @@ class RobotHandler:
                 print(direc, turn, 'in follow - found color')
                 if turn != 0:
                     print('turning to line result', direc, 'actual ',   ~direc)
-                    self.drive(0, abs(turn), ~direc, 200, True)
+                    self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)

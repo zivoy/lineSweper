@@ -90,7 +90,7 @@ class RobotHandler:
             self.ar.stop(stop_action="hold")
             return target_angle - self.ar.position
         for r in [25]:
-            for angle_of_sensor in range(max(target_angle-r, -90), min(target_angle+1 + r, 90), 4):
+            for angle_of_sensor in range(max(target_angle-r, -90), min(target_angle+1 + r, 90), 6):
                 self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
                 self.ar.wait_until('running', timeout=10)  # TODO: should dthis be wait_while
                 if get_closest_color(self.return_colors()) == target_color:
@@ -143,12 +143,12 @@ class RobotHandler:
         self.m2.run_forever(speed_sp=go_speed)
         self.ar.run_to_abs_pos(position_sp=angle, speed_sp=200)
         while self.m1.is_running:
-            go_speed = 150
+            go_speed = 100
             self.m1.run_forever(speed_sp=go_speed)
             self.m2.run_forever(speed_sp=go_speed)
             if get_closest_color(self.return_colors()) != color:
                 self.stop_running()
-                go_speed = 10
+                go_speed = 40
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)
                 print('follow line at angle - no orig color', color)
@@ -174,6 +174,7 @@ class RobotHandler:
                     return exit_col
 
     def drive(self, forward, turn_deg=0, turn_dir=None, speed=200, wwr=True):
+        print('DRIVE', forward, turn_deg, turn_dir)
         self.stop_running()
 
         wheel_travel_distance = robot_turn_circle * turn_deg / 360.0
@@ -300,7 +301,7 @@ class RobotHandler:
             self.ar.run_to_abs_pos(position_sp=-r, speed_sp=200)
             self.ar.wait_while('running', timeout=r*5)
             result = []
-            for angle in range(-r, r + 1, 4):
+            for angle in range(-r, r + 1, 6):
                 self.ar.run_to_abs_pos(position_sp=angle, speed_sp=200)
                 self.ar.wait_while('running', timeout=10)   # Wait until ?
                 result.append(get_closest_color(self.return_colors()))

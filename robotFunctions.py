@@ -1,12 +1,15 @@
 from ev3dev import ev3
 from enum import Enum
-from math import pi, sin
+from math import pi
 
 wheel_diameter = 5.6
 robot_width = 11.6
 
+stage_width = 90
+
 wheel_circum = pi * wheel_diameter
 robot_turn_circle = pi * robot_width
+
 
 class Color(Enum):
     RED = 'red'
@@ -30,6 +33,13 @@ class Direction(Enum):
             if self.value == Direction.RIGHT.value:
                 return -90
             return 90
+
+
+def get_dir(num):
+    if num < 0:
+        return Direction.RIGHT
+    return Direction.LEFT
+
 
 def dist(list1, list2):
     return sum([(vi - vj) ** 2.0 for vi, vj in zip(list1, list2)])
@@ -92,9 +102,6 @@ class RobotHandler:
     def check_outside_line(self):
         pass
 
-    def distance_to_wall(self):
-        return self.to_wall()*sin(abs(self.get_orientation()))
-
     # find_color_to_turn
     # this checks whether the wanted color is to the left or to the right of the desired color.
     # this can be used dto straddle a line if angle is 0 or to drive to the side if angle is 85
@@ -109,14 +116,11 @@ class RobotHandler:
     #           --- world ---  | W W W W W W W |-60| G W W W W W W |    --->  (Direction.Right, -5)
     #           --- world ---  | W W G W W W W |-60| W W W W W W W |    --->  (Direction.Right, 20)
 
-    def find_color_to_turn(self, color_to_find=Color.BLACK, target_angle=0):  #-> returns (direction, angle_turn_to_)
+    def find_color_to_turn(self, color_to_find=Color.BLACK, target_angle=0):  # -> returns (direction, angle_turn_to_)
         angle_diff = self.search_for_diff_to_line(color_to_find, target_angle)
         if angle_diff is None:
             return None
-        if angle_diff < 0:
-            return Direction.LEFT, angle_diff
-        else:
-            return Direction.RIGHT, angle_diff
+        return ~get_dir(angle_diff), angle_diff
 
     # follow_line_at_angle
     # assume the robot starts on a line.
@@ -138,12 +142,12 @@ class RobotHandler:
                     break
                 direc, turn = direc_turn
                 print(direc_turn)
-                if turn !=0:
+                if turn != 0:
                     self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)
-    # don't go backwards when you turn
+
     def drive(self, forward, turn_deg=0, turn_dir=None, speed=200, wwr=True):
         self.stop_running()
 
@@ -160,13 +164,10 @@ class RobotHandler:
         elif turn_dir == Direction.LEFT:
             r_rot = -rotation_deg + move_rot
             l_rot = rotation_deg + move_rot
-            l_speed = speed
-            r_speed = speed * r_rot / l_rot
+
         else:
             r_rot = move_rot
             l_rot = move_rot
-            l_speed = speed
-            r_speed = speed
 
         if abs(l_rot) > abs(r_rot):
             l_speed = speed * l_rot / r_rot
@@ -174,7 +175,7 @@ class RobotHandler:
         else:
             l_speed = speed
             r_speed = speed * r_rot / l_rot
-            
+
         try:
             if r_rot != 0:
                 self.m1.run_to_rel_pos(position_sp=r_rot, speed_sp=r_speed)
@@ -189,8 +190,61 @@ class RobotHandler:
             self.m1.wait_while('running', timeout=max(1.0, r_rot / r_speed * 1000.0 - comp))
             self.m2.wait_while('running', timeout=max(1.0, l_rot / l_speed * 1000.0 - comp))
 
-    def to_wall(self):
+    def d_to_wall(self):
         return self.us.value() / 10.0
 
-    def circle_procc(self):
+    # look_for_other_color -
+    # while following color look for other color to change behaviour .
+    # e.g. when on blue look for black green or red
+    # when on green or red, look for blue.
+    #
+    def look_for_other_color(self, main_color=Color.GREEN, look_for=Color.BLUE):
+        pass
+
+    # choose_circle_direction
+    # selects the direction to follow the circle
+    # if facing north +- 30  - > face north exactly, then take distance to left wall and decide
+    # if facing eastish  turn left before nav circle
+    # westish - turn  right before circle
+    def choose_circle_direction(self):
+        orien = self.get_orientation()
+        to_wall = None
+        if -30 < orien < 30:
+            to_wall = self.straiten(orien)
+        go_dir = get_dir(orien)
+
+        if to_wall is not None:
+            if to_wall < stage_width/3:
+                go_dir = Direction.RIGHT
+            else:
+                go_dir = Direction.LEFT
+        return go_dir
+
+    def straiten(self, orientation):
+        dire = get_dir(orientation)
+        self.drive(0, abs(orientation), dire)
+        dist_wall = self.d_to_wall()
+        self.drive(0, abs(orientation), ~dire)
+        return dist_wall
+
+    # takes a color
+    # if redd charge, retreat then follow the circle.
+    # if green follow circle
+    def circle_process(self, color):
+        if color == Color.RED:
+            self.drive(6)
+            self.ar.run_to_abs_pos(position_sp=80, speed_sp=700)
+            self.ar.run_to_abs_pos(position_sp=-80, speed_sp=700)
+            self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
+            self.ar.wait_while('running', timeout=500)
+            self.drive(-6)
+
+    # navigate chooses the actions.
+    # follow blue,
+    # look for change
+    # process_circle
+    # look for _ blue
+    # loop until black
+
+    def navigate(self):
         pass

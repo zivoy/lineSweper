@@ -82,7 +82,7 @@ class RobotHandler:
         return [255.0 / s * self.cl.value(i) for i, s in enumerate(scale)]
 
     def search_for_diff_to_line(self, target_color, target_angle=0):
-        print('search')
+        print('search_for_diff')
         angle_of_sensor = target_angle
         self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
         self.ar.wait_until('running', timeout=angle_of_sensor/300.0*1000)
@@ -96,6 +96,7 @@ class RobotHandler:
                 if get_closest_color(self.return_colors()) == target_color:
                     print('found target')
                     self.ar.stop(stop_action="hold")
+                    print('target - position', self.ar.position)
                     return target_angle - self.ar.position
         print('did not find target')
         return None

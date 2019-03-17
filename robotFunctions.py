@@ -168,12 +168,11 @@ class RobotHandler:
             r_speed = speed
         l_speed = max(1, l_speed)
         r_speed = max(1, r_speed)
-        l_rot = max(1, l_rot)
-        r_rot = max(1, r_rot)
         try:
             self.m1.run_to_rel_pos(position_sp=r_rot, speed_sp=r_speed)
             self.m2.run_to_rel_pos(position_sp=l_rot, speed_sp=l_speed)
         except:
+            print('exeption')
             pass
 
         comp = 50.0

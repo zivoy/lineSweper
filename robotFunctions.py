@@ -72,7 +72,7 @@ class RobotHandler:
         if get_closest_color(self.return_colors()) == target_color:
             return target_angle - self.ar.position
 
-        for i in range(max(target_angle-20, -90), min(target_color+21, 90), 4):
+        for i in range(max(target_angle-20, -90), min(target_angle+21, 90), 4):
             angle_of_sensor = i
             self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=400)
             self.ar.wait_until('running', timeout=10)

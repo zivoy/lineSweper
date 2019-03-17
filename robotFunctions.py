@@ -234,7 +234,9 @@ class RobotHandler:
         if color == Color.RED:
             self.drive(6)
             self.ar.run_to_abs_pos(position_sp=80, speed_sp=700)
+            self.ar.wait_while('running', timeout=500)
             self.ar.run_to_abs_pos(position_sp=-80, speed_sp=700)
+            self.ar.wait_while('running', timeout=500)
             self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
             self.ar.wait_while('running', timeout=500)
             self.drive(-6)

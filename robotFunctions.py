@@ -85,14 +85,14 @@ class RobotHandler:
         print('search_for_diff')
         angle_of_sensor = target_angle
         self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
-        self.ar.wait_until('running', timeout=angle_of_sensor/300.0*1000)
+        self.ar.wait_while('running', timeout=angle_of_sensor/300.0*1000)
         if get_closest_color(self.return_colors()) == target_color:
             self.ar.stop(stop_action="hold")
             return target_angle - self.ar.position
         for r in [25]:
             for angle_of_sensor in range(max(target_angle-r, -90), min(target_angle+1 + r, 90), 6):
                 self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=400)
-                self.ar.wait_until('running', timeout=20)  # TODO: should dthis be wait_while
+                self.ar.wait_while('running', timeout=20)  # TODO: should dthis be wait_while
                 if get_closest_color(self.return_colors()) == target_color:
                     print('found target')
                     self.ar.stop(stop_action="hold")

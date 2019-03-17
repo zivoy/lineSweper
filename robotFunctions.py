@@ -166,8 +166,8 @@ class RobotHandler:
             l_rot = move_rot
             l_speed = speed
             r_speed = speed
-        l_speed = max(1, l_speed)
-        r_speed = max(1, r_speed)
+        l_speed = abs(l_speed)
+        r_speed = abs(r_speed)
         try:
             self.m1.run_to_rel_pos(position_sp=r_rot, speed_sp=r_speed)
             self.m2.run_to_rel_pos(position_sp=l_rot, speed_sp=l_speed)
@@ -184,3 +184,4 @@ class RobotHandler:
         return self.us.value() / 10.0
 
     def circle_procc(self):
+        pass

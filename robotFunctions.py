@@ -67,16 +67,18 @@ class RobotHandler:
 
     def search_for_diff_to_line(self, target_color, target_angle=0):
         angle_of_sensor = target_angle
-        self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=400)
+        self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
         self.ar.wait_until('running', timeout=10)
         if get_closest_color(self.return_colors()) == target_color:
+            self.ar.stop(stop_action="hold")
             return target_angle - self.ar.position
 
         for i in range(max(target_angle-20, -90), min(target_angle+21, 90), 4):
             angle_of_sensor = i
-            self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=400)
+            self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
             self.ar.wait_until('running', timeout=10)
             if get_closest_color(self.return_colors()) == target_color:
+                self.ar.stop(stop_action="hold")
                 return target_angle - self.ar.position
 
         return None

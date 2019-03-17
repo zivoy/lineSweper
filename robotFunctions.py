@@ -152,7 +152,8 @@ class RobotHandler:
 
                 print(direc, turn, 'in follow - found color')
                 if turn != 0:
-                    self.drive(0, abs(turn), direc, 200, True)
+                    print('turning to line result', direc, 'actual ',   ~direc)
+                    self.drive(0, abs(turn), ~direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)
@@ -297,7 +298,7 @@ class RobotHandler:
                 for c in [Color.BLACK, Color.GREEN, Color.RED]:
                     if c in result:
                         return c
-                print(result)
+            print(result)
         return None
 
     # navigate chooses the actions.

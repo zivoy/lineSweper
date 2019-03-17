@@ -89,7 +89,7 @@ class RobotHandler:
         if get_closest_color(self.return_colors()) == target_color:
             self.ar.stop(stop_action="hold")
             return target_angle - self.ar.position
-        for r in [20, 35]:
+        for r in [25]:
             for angle_of_sensor in range(max(target_angle-r, -90), min(target_angle+1 + r, 90), 4):
                 self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
                 self.ar.wait_until('running', timeout=10)  # TODO: should dthis be wait_while
@@ -148,7 +148,7 @@ class RobotHandler:
             self.m2.run_forever(speed_sp=go_speed)
             if get_closest_color(self.return_colors()) != color:
                 self.stop_running()
-                go_speed = 40
+                go_speed = 10
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)
                 print('follow line at angle - no orig color', color)

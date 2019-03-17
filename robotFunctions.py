@@ -29,10 +29,10 @@ class Direction(Enum):
                 return Direction.RIGHT
             return Direction.LEFT
 
-        def get_arm(self):
+        def get_arm_sign(self):
             if self.value == Direction.RIGHT.value:
-                return -90
-            return 90
+                return 1
+            return -1
 
 
 def get_dir(num):
@@ -92,7 +92,7 @@ class RobotHandler:
         for i in range(max(target_angle-20, -90), min(target_angle+21, 90), 4):
             angle_of_sensor = i
             self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
-            self.ar.wait_until('running', timeout=10)
+            self.ar.wait_until('running', timeout=10)  # TODO: should dthis be wait_while
             if get_closest_color(self.return_colors()) == target_color:
                 self.ar.stop(stop_action="hold")
                 return target_angle - self.ar.position
@@ -127,7 +127,7 @@ class RobotHandler:
     # drive along line.
     # keep scanning the line, when you find you need to turn, stop the motors, then turn, then restart the motors.
 
-    def follow_line_at_angle(self, color=Color.BLACK, angle=0):
+    def follow_line_at_angle(self, color=Color.BLACK, angle=0, exit_col=None, look_for_exit=None):
         go_speed = 100
         self.m1.run_forever(speed_sp=go_speed)
         self.m2.run_forever(speed_sp=go_speed)
@@ -136,10 +136,11 @@ class RobotHandler:
             if get_closest_color(self.return_colors()) != color:
                 print('no color', color)
                 direc, turn = self.find_color_to_turn(color, angle)
+
                 if direc is None:
-                    print('foundd none')
+                    print('found none')
                     self.stop_running()
-                    break
+                    return None
 
                 print(direc, turn)
                 if turn != 0:
@@ -147,6 +148,12 @@ class RobotHandler:
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)
+
+            elif exit_col is not None and look_for_exit is not None:
+                if self.scan_for_other_color(main_color=color,  look_for=exit_col, direction=look_for_exit):
+                    self.stop_running()
+                    self.drive(forward=3, turn_deg=15, turn_dir=look_for_exit)
+                    return exit_col
 
     def drive(self, forward, turn_deg=0, turn_dir=None, speed=200, wwr=True):
         self.stop_running()
@@ -198,8 +205,17 @@ class RobotHandler:
     # e.g. when on blue look for black green or red
     # when on green or red, look for blue.
     #
-    def look_for_other_color(self, main_color=Color.GREEN, look_for=Color.BLUE):
-        pass
+    def scan_for_other_color(self, main_color=Color.GREEN, look_for=Color.BLUE, direction=Direction.RIGHT):
+        start_pos = self.ar.position
+        scan_angle_sign = - direction.get_arm_sign()
+        scan_pos = start_pos + scan_angle_sign *  20
+        self.ar.run_to_abs_pos(position_sp=scan_pos, speed_sp=400)
+        self.ar.wait_while('running', timeout=50)
+
+        if get_closest_color(self.return_colors()) == look_for:
+            return True
+        self.ar.run_to_abs_pos(position_sp=start_pos, speed_sp=400)
+        return False
 
     # choose_circle_direction
     # selects the direction to follow the circle
@@ -232,21 +248,45 @@ class RobotHandler:
     # if green follow circle
     def circle_process(self, color):
         if color == Color.RED:
-            self.drive(6)
-            self.ar.run_to_abs_pos(position_sp=80, speed_sp=700)
-            self.ar.wait_while('running', timeout=500)
-            self.ar.run_to_abs_pos(position_sp=-80, speed_sp=700)
-            self.ar.wait_while('running', timeout=500)
-            self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
-            self.ar.wait_while('running', timeout=500)
-            self.drive(-6)
+            #self.ar.run_to_abs_pos(position_sp=80, speed_sp=700)
+            self.drive(20, speed=500)
+            #self.ar.wait_while('running', timeout=500)
+            #self.ar.run_to_abs_pos(position_sp=-80, speed_sp=700)
+            #self.ar.wait_while('running', timeout=500)
+            #self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
+            #self.ar.wait_while('running', timeout=500)
+            self.drive(-20)
+        where_to = self.choose_circle_direction()
+        self.drive(-4)
+        self.drive(3, 20, where_to)
+        angle = 30 * where_to.get_arm_sign()
+        if self.follow_line_at_angle(color, angle, exit_col=Color.BLUE, look_for_exit=where_to) is None:
+            print('I lost the circle')
+            return None
+        self.drive(.5, 20, where_to)
+        return color
+
+    def look_for_circle_color(self):  # returns green red or black or none
+        for r in [20, 30, 40]:
+            self.ar.run_to_abs_pos(position_sp=-r, speed_sp=200)
+            self.ar.wait_while('running', timeout=r*5)
+            result = []
+            for angle in range(-r, r + 1, 4):
+                self.ar.run_to_abs_pos(position_sp=angle, speed_sp=200)
+                self.ar.wait_while('running', timeout=10)   # Wait until ?
+                result.append(get_closest_color(self.return_colors()))
+                for c in [Color.BLACK, Color.GREEN, Color.RED]:
+                    if c in result:
+                        return c
+        return None
 
     # navigate chooses the actions.
-    # follow blue,
+    # follow blue, until lost
     # look for change
     # process_circle
-    # look for _ blue
+        # look for _ blue
     # loop until black
 
     def navigate(self):
+        self.follow_line_at_angle()
         pass

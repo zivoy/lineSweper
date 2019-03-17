@@ -154,13 +154,13 @@ class RobotHandler:
         if turn_dir == Direction.RIGHT:
             r_rot = rotation_deg + move_rot
             l_rot = -rotation_deg + move_rot
-            l_speed = speed * l_rot / max(1.0, r_rot)
+            l_speed = speed * l_rot / r_rot
             r_speed = speed
         elif turn_dir == Direction.LEFT:
             r_rot = -rotation_deg + move_rot
             l_rot = rotation_deg + move_rot
             l_speed = speed
-            r_speed = speed * r_rot / max(1.0, l_rot)
+            r_speed = speed * r_rot / l_rot
         else:
             r_rot = move_rot
             l_rot = move_rot
@@ -182,3 +182,5 @@ class RobotHandler:
 
     def to_wall(self):
         return self.us.value() / 10.0
+
+    def circle_procc(self):

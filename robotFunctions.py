@@ -91,13 +91,13 @@ class RobotHandler:
             return target_angle - self.ar.position
         for r in [25]:
             for angle_of_sensor in range(max(target_angle-r, -90), min(target_angle+1 + r, 90), 6):
-                self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
-                self.ar.wait_until('running', timeout=10)  # TODO: should dthis be wait_while
+                self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=400)
+                self.ar.wait_until('running', timeout=20)  # TODO: should dthis be wait_while
                 if get_closest_color(self.return_colors()) == target_color:
                     print('found target')
                     self.ar.stop(stop_action="hold")
-                    print('target - position', self.ar.position)
-                    return target_angle - self.ar.position
+                    print('target - position', angle_of_sensor)
+                    return target_angle -angle_of_sensor
         print('did not find target')
         return None
 

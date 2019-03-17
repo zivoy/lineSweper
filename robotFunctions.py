@@ -81,7 +81,7 @@ class RobotHandler:
 
         for i in range(max(target_angle-20, -90), min(target_angle+21, 90), 4):
             angle_of_sensor = i
-            self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
+            self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
             self.ar.wait_until('running', timeout=10)
             if get_closest_color(self.return_colors()) == target_color:
                 self.ar.stop(stop_action="hold")
@@ -124,8 +124,9 @@ class RobotHandler:
     # keep scanning the line, when you find you need to turn, stop the motors, then turn, then restart the motors.
 
     def follow_line_at_angle(self, color=Color.BLACK, angle=0):
-        self.m1.run_forever(speed_sp=200)
-        self.m2.run_forever(speed_sp=200)
+        go_speed= 100
+        self.m1.run_forever(speed_sp=go_speed)
+        self.m2.run_forever(speed_sp=go_speed)
         self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
         while self.m1.is_running:
             if get_closest_color(self.return_colors()) != color:
@@ -138,8 +139,8 @@ class RobotHandler:
                 direc, turn = direc_turn
                 self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
-                self.m1.run_forever(speed_sp=200)
-                self.m2.run_forever(speed_sp=200)
+                self.m1.run_forever(speed_sp=go_speed)
+                self.m2.run_forever(speed_sp=go_speed)
 
     def drive(self, forward, turn_deg=0, turn_dir=None, speed=200, wwr=True):
         self.stop_running()

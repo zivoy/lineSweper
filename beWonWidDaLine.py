@@ -1,5 +1,6 @@
 import robotFunctions
 from robotFunctions import Color, Direction
+from ev3dev.ev3 import Sound
 
 robot = robotFunctions.RobotHandler('outA', 'outD', 'outB')
 
@@ -11,6 +12,7 @@ while True:
         break
     if c == Color.BLACK:
         print('tada')
+        Sound.beep()
         break
     robot.circle_process(c)
 

@@ -134,15 +134,15 @@ class RobotHandler:
         self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
         while self.m1.is_running:
             if get_closest_color(self.return_colors()) != color:
-                print('no color', color)
+                print('follow line at angle - no orig color', color)
                 direc, turn = self.find_color_to_turn(color, angle)
 
                 if direc is None:
-                    print('found none')
+                    print('found none - in follow line at angle ', exit_col, look_for_exit)
                     self.stop_running()
                     return None
 
-                print(direc, turn)
+                print(direc, turn, 'in follow - found color')
                 if turn != 0:
                     self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
@@ -248,20 +248,25 @@ class RobotHandler:
     # if green follow circle
     def circle_process(self, color):
         if color == Color.RED:
-            #self.ar.run_to_abs_pos(position_sp=80, speed_sp=700)
+            print('found red - charge ')
+            self.ar.run_to_abs_pos(position_sp=80, speed_sp=400)
+
+            self.ar.wait_while('running', timeout=500)
             self.drive(20, speed=500)
-            #self.ar.wait_while('running', timeout=500)
-            #self.ar.run_to_abs_pos(position_sp=-80, speed_sp=700)
-            #self.ar.wait_while('running', timeout=500)
-            #self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
-            #self.ar.wait_while('running', timeout=500)
+            self.ar.run_to_abs_pos(position_sp=-80, speed_sp=400)
+            self.ar.wait_while('running', timeout=500)
+            self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
+
             self.drive(-20)
+            print('have retreated')
+            self.ar.wait_while('running', timeout=500)
+
         where_to = self.choose_circle_direction()
         self.drive(-4)
         self.drive(3, 20, where_to)
         angle = 30 * where_to.get_arm_sign()
         if self.follow_line_at_angle(color, angle, exit_col=Color.BLUE, look_for_exit=where_to) is None:
-            print('I lost the circle')
+            print('I lost the circle ' , color)
             return None
         self.drive(.5, 20, where_to)
         return color

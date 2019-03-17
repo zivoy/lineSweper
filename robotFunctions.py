@@ -1,6 +1,6 @@
 from ev3dev import ev3
 from enum import Enum
-from math import pi
+from math import pi, sin
 
 wheel_diameter = 5.6
 robot_width = 11.6
@@ -93,7 +93,7 @@ class RobotHandler:
         pass
 
     def distance_to_wall(self):
-        pass
+        return self.to_wall()*sin(abs(self.get_orientation())
 
     # find_color_to_turn
     # this checks whether the wanted color is to the left or to the right of the desired color.
@@ -129,11 +129,13 @@ class RobotHandler:
         self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
         while self.m1.is_running:
             if get_closest_color(self.return_colors()) != color:
+                print('no color', color)
                 direc, turn = self.find_color_to_turn(color, angle)
                 if direc is None:
+                    print('foundd none')
                     self.stop_running()
                     break
-                self.drive(0, turn / 2.0, direc, 200, True)
+                self.drive(0, turn , direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=200)
                 self.m2.run_forever(speed_sp=200)
@@ -177,3 +179,5 @@ class RobotHandler:
             self.m1.wait_while('running', timeout=max(1.0, r_rot / r_speed * 1000.0 - comp))
             self.m2.wait_while('running', timeout=max(1.0, l_rot / l_speed * 1000.0 - comp))
 
+    def to_wall(self):
+        return self.us.value() / 10.0

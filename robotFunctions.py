@@ -143,7 +143,7 @@ class RobotHandler:
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)
-
+    # don't go backwards when you turn
     def drive(self, forward, turn_deg=0, turn_dir=None, speed=200, wwr=True):
         self.stop_running()
 
@@ -156,8 +156,7 @@ class RobotHandler:
         if turn_dir == Direction.RIGHT:
             r_rot = rotation_deg + move_rot
             l_rot = -rotation_deg + move_rot
-            l_speed = speed * l_rot / r_rot
-            r_speed = speed
+
         elif turn_dir == Direction.LEFT:
             r_rot = -rotation_deg + move_rot
             l_rot = rotation_deg + move_rot
@@ -168,11 +167,19 @@ class RobotHandler:
             l_rot = move_rot
             l_speed = speed
             r_speed = speed
-        l_speed = abs(l_speed)
-        r_speed = abs(r_speed)
+
+        if abs(l_rot) > abs(r_rot):
+            l_speed = speed * l_rot / r_rot
+            r_speed = speed
+        else:
+            l_speed = speed
+            r_speed = speed * r_rot / l_rot
+            
         try:
-            self.m1.run_to_rel_pos(position_sp=r_rot, speed_sp=r_speed)
-            self.m2.run_to_rel_pos(position_sp=l_rot, speed_sp=l_speed)
+            if r_rot != 0:
+                self.m1.run_to_rel_pos(position_sp=r_rot, speed_sp=r_speed)
+            if l_rot != 0:
+                self.m2.run_to_rel_pos(position_sp=l_rot, speed_sp=l_speed)
         except:
             print('exeption')
             pass

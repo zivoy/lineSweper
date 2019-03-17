@@ -121,6 +121,7 @@ class RobotHandler:
     def find_color_to_turn(self, color_to_find=Color.BLACK, target_angle=0):  # -> returns (direction, angle_turn_to_)
         print('find color to turn')
         angle_diff = self.search_for_diff_to_line(color_to_find, target_angle)
+        print('angle_diff in ---- ', angle_diff)
         if angle_diff is None:
             return None, None
         return ~get_dir(angle_diff), angle_diff
@@ -140,9 +141,16 @@ class RobotHandler:
         self.be_on_line_at_angle(color, angle)
         self.m1.run_forever(speed_sp=go_speed)
         self.m2.run_forever(speed_sp=go_speed)
-        self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
+        self.ar.run_to_abs_pos(position_sp=angle, speed_sp=200)
         while self.m1.is_running:
+            go_speed = 150
+            self.m1.run_forever(speed_sp=go_speed)
+            self.m2.run_forever(speed_sp=go_speed)
             if get_closest_color(self.return_colors()) != color:
+                self.stop_running()
+                go_speed = 40
+                self.m1.run_forever(speed_sp=go_speed)
+                self.m2.run_forever(speed_sp=go_speed)
                 print('follow line at angle - no orig color', color)
                 direc, turn = self.find_color_to_turn(color, angle)
 

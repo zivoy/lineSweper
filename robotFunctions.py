@@ -114,9 +114,9 @@ class RobotHandler:
         if angle_diff is None:
             return None
         if angle_diff < 0:
-            return Direction.RIGHT, angle_diff
-        else:
             return Direction.LEFT, angle_diff
+        else:
+            return Direction.RIGHT, angle_diff
 
     # follow_line_at_angle
     # assume the robot starts on a line.
@@ -124,7 +124,7 @@ class RobotHandler:
     # keep scanning the line, when you find you need to turn, stop the motors, then turn, then restart the motors.
 
     def follow_line_at_angle(self, color=Color.BLACK, angle=0):
-        go_speed= 100
+        go_speed = 100
         self.m1.run_forever(speed_sp=go_speed)
         self.m2.run_forever(speed_sp=go_speed)
         self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
@@ -137,7 +137,9 @@ class RobotHandler:
                     self.stop_running()
                     break
                 direc, turn = direc_turn
-                self.drive(0, abs(turn), direc, 200, True)
+                print(direc_turn)
+                if turn !=0:
+                    self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=go_speed)
                 self.m2.run_forever(speed_sp=go_speed)

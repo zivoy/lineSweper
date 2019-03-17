@@ -82,21 +82,22 @@ class RobotHandler:
         return [255.0 / s * self.cl.value(i) for i, s in enumerate(scale)]
 
     def search_for_diff_to_line(self, target_color, target_angle=0):
+        print('search')
         angle_of_sensor = target_angle
         self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
         self.ar.wait_until('running', timeout=angle_of_sensor/300.0*1000)
         if get_closest_color(self.return_colors()) == target_color:
             self.ar.stop(stop_action="hold")
             return target_angle - self.ar.position
-
-        for i in range(max(target_angle-20, -90), min(target_angle+21, 90), 4):
-            angle_of_sensor = i
-            self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
-            self.ar.wait_until('running', timeout=10)  # TODO: should dthis be wait_while
-            if get_closest_color(self.return_colors()) == target_color:
-                self.ar.stop(stop_action="hold")
-                return target_angle - self.ar.position
-
+        for r in [20, 35]:
+            for angle_of_sensor in range(max(target_angle-r, -90), min(target_angle+1 + r, 90), 4):
+                self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=600)
+                self.ar.wait_until('running', timeout=10)  # TODO: should dthis be wait_while
+                if get_closest_color(self.return_colors()) == target_color:
+                    print('found target')
+                    self.ar.stop(stop_action="hold")
+                    return target_angle - self.ar.position
+        print('did not find target')
         return None
 
     def check_outside_line(self):
@@ -117,10 +118,15 @@ class RobotHandler:
     #           --- world ---  | W W G W W W W |-60| W W W W W W W |    --->  (Direction.Right, 20)
 
     def find_color_to_turn(self, color_to_find=Color.BLACK, target_angle=0):  # -> returns (direction, angle_turn_to_)
+        print('find color to turn')
         angle_diff = self.search_for_diff_to_line(color_to_find, target_angle)
         if angle_diff is None:
             return None, None
         return ~get_dir(angle_diff), angle_diff
+
+    def be_on_line_at_angle(self, color, angle):
+
+        pass
 
     # follow_line_at_angle
     # assume the robot starts on a line.
@@ -129,6 +135,8 @@ class RobotHandler:
 
     def follow_line_at_angle(self, color=Color.BLACK, angle=0, exit_col=None, look_for_exit=None):
         go_speed = 100
+        # this assumes you start on the line.
+        self.be_on_line_at_angle(color, angle)
         self.m1.run_forever(speed_sp=go_speed)
         self.m2.run_forever(speed_sp=go_speed)
         self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
@@ -250,6 +258,7 @@ class RobotHandler:
     # if redd charge, retreat then follow the circle.
     # if green follow circle
     def circle_process(self, color):
+        print('entering circle process')
         if color == Color.RED:
             print('found red - charge ')
             self.ar.run_to_abs_pos(position_sp=80, speed_sp=400)
@@ -266,16 +275,18 @@ class RobotHandler:
 
         where_to = self.choose_circle_direction()
         self.drive(-4)
-        self.drive(3, 20, where_to)
+        self.drive(0, 20, where_to)
         angle = 30 * where_to.get_arm_sign()
+
         if self.follow_line_at_angle(color, angle, exit_col=Color.BLUE, look_for_exit=where_to) is None:
-            print('I lost the circle ' , color)
+            print('I lost the circle ' , color, angle)
             return None
         self.drive(.5, 20, where_to)
         return color
 
     def look_for_circle_color(self):  # returns green red or black or none
         for r in [20, 30, 40]:
+            print('look for blue at angle', r)
             self.ar.run_to_abs_pos(position_sp=-r, speed_sp=200)
             self.ar.wait_while('running', timeout=r*5)
             result = []
@@ -286,6 +297,7 @@ class RobotHandler:
                 for c in [Color.BLACK, Color.GREEN, Color.RED]:
                     if c in result:
                         return c
+                print(result)
         return None
 
     # navigate chooses the actions.

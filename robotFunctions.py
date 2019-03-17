@@ -119,7 +119,7 @@ class RobotHandler:
     def find_color_to_turn(self, color_to_find=Color.BLACK, target_angle=0):  # -> returns (direction, angle_turn_to_)
         angle_diff = self.search_for_diff_to_line(color_to_find, target_angle)
         if angle_diff is None:
-            return None
+            return None, None
         return ~get_dir(angle_diff), angle_diff
 
     # follow_line_at_angle
@@ -135,13 +135,13 @@ class RobotHandler:
         while self.m1.is_running:
             if get_closest_color(self.return_colors()) != color:
                 print('no color', color)
-                direc_turn = self.find_color_to_turn(color, angle)
-                if direc_turn is None:
+                direc, turn = self.find_color_to_turn(color, angle)
+                if direc is None:
                     print('foundd none')
                     self.stop_running()
                     break
-                direc, turn = direc_turn
-                print(direc_turn)
+
+                print(direc, turn)
                 if turn != 0:
                     self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)

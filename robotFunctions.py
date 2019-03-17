@@ -1,6 +1,6 @@
 from ev3dev import ev3
 from enum import Enum
-pi = 3.141
+pi = 3.14159
 
 wheel_diameter = 5.6
 robot_width = 11.6

@@ -1,6 +1,12 @@
 from ev3dev import ev3
 from enum import Enum
+from math import pi
 
+wheel_diameter = 5.6
+robot_width = 11.6
+
+wheel_circum = pi * wheel_diameter
+robot_turn_circle = pi * robot_width
 
 class Color(Enum):
     RED = 'red'
@@ -68,7 +74,7 @@ class RobotHandler:
     def search_for_diff_to_line(self, target_color, target_angle=0):
         angle_of_sensor = target_angle
         self.ar.run_to_abs_pos(position_sp=angle_of_sensor, speed_sp=300)
-        self.ar.wait_until('running', timeout=10)
+        self.ar.wait_until('running', timeout=angle_of_sensor/300.0*1000)
         if get_closest_color(self.return_colors()) == target_color:
             self.ar.stop(stop_action="hold")
             return target_angle - self.ar.position
@@ -118,4 +124,56 @@ class RobotHandler:
     # keep scanning the line, when you find you need to turn, stop the motors, then turn, then restart the motors.
 
     def follow_line_at_angle(self, color=Color.BLACK, angle=0):
-        pass
+        self.m1.run_forever(speed_sp=200)
+        self.m2.run_forever(speed_sp=200)
+        self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
+        while self.m1.is_running:
+            if get_closest_color(self.return_colors()) != color:
+                direc, turn = self.find_color_to_turn(color, angle)
+                if direc is None:
+                    self.stop_running()
+                    break
+                self.drive(0, turn / 2.0, direc, 200, True)
+                self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
+                self.m1.run_forever(speed_sp=200)
+                self.m2.run_forever(speed_sp=200)
+
+    def drive(self, forward, turn_deg=0, turn_dir=None, speed=200, wwr=True):
+        self.stop_running()
+
+        wheel_travel_distance = robot_turn_circle * turn_deg / 360.0
+
+        rotation_deg = wheel_travel_distance / wheel_circum * 360.0
+
+        move_rot = float(forward) / wheel_circum * 360.0
+
+        if turn_dir == Direction.RIGHT:
+            r_rot = rotation_deg + move_rot
+            l_rot = -rotation_deg + move_rot
+            l_speed = speed * l_rot / max(1.0, r_rot)
+            r_speed = speed
+        elif turn_dir == Direction.LEFT:
+            r_rot = -rotation_deg + move_rot
+            l_rot = rotation_deg + move_rot
+            l_speed = speed
+            r_speed = speed * r_rot / max(1.0, l_rot)
+        else:
+            r_rot = move_rot
+            l_rot = move_rot
+            l_speed = speed
+            r_speed = speed
+        l_speed = max(1, l_speed)
+        r_speed = max(1, r_speed)
+        l_rot = max(1, l_rot)
+        r_rot = max(1, r_rot)
+        try:
+            self.m1.run_to_rel_pos(position_sp=r_rot, speed_sp=r_speed)
+            self.m2.run_to_rel_pos(position_sp=l_rot, speed_sp=l_speed)
+        except:
+            pass
+
+        comp = 50.0
+        if wwr:
+            self.m1.wait_while('running', timeout=max(1.0, r_rot / r_speed * 1000.0 - comp))
+            self.m2.wait_while('running', timeout=max(1.0, l_rot / l_speed * 1000.0 - comp))
+

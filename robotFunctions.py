@@ -93,7 +93,7 @@ class RobotHandler:
         pass
 
     def distance_to_wall(self):
-        return self.to_wall()*sin(abs(self.get_orientation())
+        return self.to_wall()*sin(abs(self.get_orientation()))
 
     # find_color_to_turn
     # this checks whether the wanted color is to the left or to the right of the desired color.
@@ -130,12 +130,13 @@ class RobotHandler:
         while self.m1.is_running:
             if get_closest_color(self.return_colors()) != color:
                 print('no color', color)
-                direc, turn = self.find_color_to_turn(color, angle)
-                if direc is None:
+                direc_turn = self.find_color_to_turn(color, angle)
+                if direc_turn is None:
                     print('foundd none')
                     self.stop_running()
                     break
-                self.drive(0, turn , direc, 200, True)
+                direc, turn = direc_turn
+                self.drive(0, abs(turn), direc, 200, True)
                 self.ar.run_to_abs_pos(position_sp=0, speed_sp=200)
                 self.m1.run_forever(speed_sp=200)
                 self.m2.run_forever(speed_sp=200)

@@ -109,3 +109,11 @@ class RobotHandler:
             return Direction.RIGHT, angle_diff
         else:
             return Direction.LEFT, angle_diff
+
+    # follow_line_at_angle
+    # assume the robot starts on a line.
+    # drive along line.
+    # keep scanning the line, when you find you need to turn, stop the motors, then turn, then restart the motors.
+
+    def follow_line_at_angle(self, color=Color.BLACK, angle=0):
+        pass

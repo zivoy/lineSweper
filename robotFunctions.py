@@ -176,7 +176,10 @@ class RobotHandler:
             r_rot = move_rot
             l_rot = move_rot
 
-        if abs(l_rot) > abs(r_rot):
+        if l_rot == r_rot == 0:
+            return
+
+        if abs(l_rot) < abs(r_rot):
             l_speed = speed * l_rot / r_rot
             r_speed = speed
         else:
